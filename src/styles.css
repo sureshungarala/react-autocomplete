@@ -1,0 +1,113 @@
+:root {
+  --text-color: #4a4a4a;
+  --border-color: #4a4a4a;
+  --border-color-active: hotpink;
+  --dropdown-width: 250px;
+  --dropdown-height: 40px;
+  --dropdown-font-size: 18px;
+  --dropdown-menu-height: 250px;
+}
+
+.App {
+  display: flex;
+  font-family: sans-serif;
+  text-align: center;
+  margin: 2rem 3rem;
+  justify-content: center;
+}
+
+.dropdown {
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.5rem;
+  align-items: self-start;
+}
+.dropdown > label {
+  font-weight: 600;
+}
+
+.dropdown > label:hover + .dd-input-container,
+.dd-input-container:hover {
+  border: 1px solid var(--border-color-active);
+}
+
+.dd-input-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: var(--dropdown-height);
+  width: var(--dropdown-width);
+  line-height: var(--dropdown-height);
+  font-size: var(--dropdown-font-size);
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  outline: none;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: box-shadow 0.25s;
+}
+.dd-input-container input {
+  width: 0;
+  height: 1px;
+  border: none;
+  outline: none;
+  font-size: var(--dropdown-font-size);
+}
+
+.dd-input-container input.expand {
+  height: 100%;
+  flex-grow: 1;
+}
+
+.dd-input-container .dd-value {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  border: none;
+  outline: none;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.dd-input-container:has(input:focus, input:active) {
+  box-shadow: #fff 0px 0px 0px 1px, var(--border-color-active) 0px 0px 0px 3px;
+  border-color: var(--border-color-active);
+}
+
+.dropdown ul {
+  /* display: none; */
+  list-style: none;
+  border: 1px solid var(--border-color-active);
+  width: var(--dropdown-width);
+  border-radius: 4px;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  max-height: var(--dropdown-menu-height);
+  overflow-y: auto;
+  transform: translateY(0px);
+  transition: all 0.3s ease-in-out;
+}
+
+/* .dd-input-container input:focus + ul,
+.dd-input-container input:active + ul {
+  display: block;
+  transform: translateY(5px);
+} */
+
+.dropdown ul > li {
+  padding: 0.5rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.dropdown ul > li:not(:last-child) {
+  border-bottom: 0.5px solid var(--border-color-active);
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
