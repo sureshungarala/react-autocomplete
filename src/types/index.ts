@@ -19,7 +19,7 @@ type AutocompleteProps = {
 
 type MenuProps = {
   children: ReactNode;
-  inputVal: string;
+  isOpen: boolean;
   ref?: ForwardedRef<HTMLUListElement>;
 };
 

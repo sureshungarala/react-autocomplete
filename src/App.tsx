@@ -15,6 +15,7 @@ export default function App() {
 
   const debouncedFunc = useRef<debounceType>(
     debounce((searchVal: string) => {
+      console.log('searchVal ', searchVal);
       if (!searchVal) {
         debouncedFunc.current.cancel();
         setOptions([]);
@@ -34,7 +35,7 @@ export default function App() {
   }, []);
   // filterOptions.cancel = debouncedFunc.current.cancel;
 
-  const renderMenuOptions = () => {
+  const renderMenuOptions = useCallback(() => {
     if (filtering) {
       return <Option isDisabled>Filtering...</Option>;
     } else if (options.length > 0) {
@@ -46,7 +47,7 @@ export default function App() {
     } else {
       return <Option isDisabled>No matching options.</Option>;
     }
-  };
+  }, [filtering, options]);
 
   return (
     <div className='App'>

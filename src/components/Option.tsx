@@ -1,37 +1,44 @@
 import React from 'react';
-
+import mergeRefs from 'merge-refs';
 import StyledOption from './Styled/StyledOption';
 
 import { useComboboxContext } from '../context/ComboboxContext';
-import useCombobox from '../hooks/useCombobox';
 import { OptionProps } from '../types';
+import { useMenuContext } from '../context/MenuContext';
 
 const Option: React.ForwardRefExoticComponent<OptionProps> = React.forwardRef<
   HTMLLIElement,
   OptionProps
->(function Option({ children, value, isDisabled = false, index, id }, ref) {
-  // console.log("id in Option ", id);
-  const { activeElemIndex } = useCombobox();
-  // const { isCompact, activeValue, onSelect } = useComboboxContext();
-  // const isActive = value && value === activeValue;
-  console.log('Option rendering, activeElemIndex ', activeElemIndex);
-  React.useEffect(() => {
-    console.log('updated activeElemIndex ', activeElemIndex);
-  }, [activeElemIndex]);
+>(function Option({ children, value, isDisabled = false, id }, ref) {
+  const currentOptionRef = React.useRef<HTMLLIElement>(null);
+  const { isCompact, onSelect, highlightedIndex } = useComboboxContext();
+  const { itemIndexRef } = useMenuContext();
 
+  const onClick = React.useCallback(() => {
+    value && onSelect && onSelect(value);
+  }, [onSelect, value]);
+
+  const isActive = itemIndexRef.current === highlightedIndex;
+  if (isActive) {
+    currentOptionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+    });
+  }
+  // console.log(highlightedIndex, itemIndexRef.current);
+  if (!isDisabled) itemIndexRef.current++;
   // const isSelected = Array.isArray(selectedValue)
   //   ? selectedValue.includes(value)
   //   : selectedValue === value;
-  // console.log('option value ', value, index, activeElemIndex);
-  // console.log("isSelected ", isSelected);
   return (
     <StyledOption
-      ref={ref}
-      $isActive={activeElemIndex === index}
-      $isCompact={false}
-      onClick={() => value}
+      ref={mergeRefs(ref, currentOptionRef)}
+      $isActive={isActive}
+      $isCompact={isCompact}
+      onClick={onClick}
       disabled={isDisabled}
       id={id}
+      aria-disabled={isDisabled}
     >
       {children}
     </StyledOption>

@@ -3,9 +3,12 @@ import React from 'react';
 
 import Menu from './Menu';
 import { ComboboxContext } from '../context/ComboboxContext';
+import {
+  ComboboxReducer,
+  ComboboxReducerActionType,
+} from '../reducers/ComboboxReducer';
 import { AutocompleteProps, OptionValue } from '../types';
 
-import useCombobox from '../hooks/useCombobox';
 import { useElementIds } from '../hooks/utils';
 
 const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
@@ -17,11 +20,13 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
   selectedValue = null,
 }): React.ReactElement => {
   const elementIds = useElementIds();
-  const { keyDownHandler } = useCombobox();
+  const [state, dispatch] = React.useReducer(ComboboxReducer, {
+    highlightedIndex: -1,
+    inputVal: '',
+  });
+  console.log('new state ', state);
   const [showMenu, setShowMenu] = React.useState<boolean>(false);
-  const [inputVal, setInputVal] = React.useState<string>('');
   const [isFocused, setIsFocused] = React.useState<boolean>(false);
-
   const [selectedOption, setSelectedOption] = React.useState<
     OptionValue | OptionValue[] | null
   >(null);
@@ -31,11 +36,12 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
   const menuRef = React.useRef<HTMLUListElement>(null);
 
   React.useEffect(() => {
-    onChange?.(inputVal);
+    onChange?.(state.inputVal);
     return () => {
       onChange?.cancel?.();
     };
-  }, [onChange, inputVal]);
+  }, [onChange, state.inputVal]);
+  // console.log('children ', children, showMenu);
 
   React.useEffect(() => {
     const documentClickHandler = (event: MouseEvent) => {
@@ -48,13 +54,11 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
     };
 
     document.addEventListener('click', documentClickHandler);
-    document.addEventListener('keyup', keyUpHandler as any);
 
     return () => {
       document.removeEventListener('click', documentClickHandler);
-      document.removeEventListener('keyup', keyUpHandler as any);
     };
-  });
+  }, []);
 
   const focusInput = React.useCallback(() => {
     inputRef.current?.focus();
@@ -83,77 +87,115 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
 
   const onInputFocus = React.useCallback(() => {
     setIsFocused(true);
+    setShowMenu(true);
   }, []);
 
   const onInputBlur = React.useCallback(() => {
     setIsFocused(false);
   }, []);
 
-  const keyUpHandler: React.KeyboardEventHandler<HTMLInputElement> =
-    React.useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
-      // console.log("KeyUp event ", event.key, event.key?.length);
-      const target = event.target;
-      const value = (target as HTMLInputElement).value;
-      const { key } = event;
+  const keyDownHandler: React.KeyboardEventHandler<HTMLInputElement> =
+    React.useCallback(
+      (event: React.KeyboardEvent<HTMLInputElement>) => {
+        const { key, target } = event;
+        const value = (target as HTMLInputElement).value;
+        console.log('key ', key, value, typeof value, value.length);
+        if (key === 'Escape') {
+          setShowMenu(false);
+        }
+        // else if (key === 'Space' || key === ' ') {
+        //   // console.log('space key pressed');
+        //   dispatch({
+        //     type: ComboboxReducerActionType.SetInputVal,
+        //     payload: value,
+        //   });
+        // }
+        else if (key === 'ArrowDown') {
+          const menuItems =
+            menuRef.current?.querySelectorAll('li')?.length ?? 0;
+          console.log('arrow down pressed ', state.highlightedIndex);
+          dispatch({
+            type: ComboboxReducerActionType.SetHighlightedIndex,
+            payload:
+              state.highlightedIndex + 1 > menuItems - 1
+                ? 0
+                : state.highlightedIndex + 1,
+          });
+        } else if (key === 'ArrowUp') {
+          const menuItems =
+            menuRef.current?.querySelectorAll('li')?.length ?? 0;
+          // console.log('arrow up pressed');
+          dispatch({
+            type: ComboboxReducerActionType.SetHighlightedIndex,
+            payload:
+              state.highlightedIndex - 1 < 0
+                ? menuItems - 1
+                : state.highlightedIndex - 1,
+          });
+        }
+      },
+      [state.highlightedIndex]
+    );
 
-      if (key === 'Escape') {
-        setShowMenu(false);
-      } else if (key === 'Space' || key === ' ') {
-        // console.log('space key pressed');
-      } else if (key === 'ArrowDown') {
-        // console.log('arrow down pressed');
-      } else if (key === 'ArrowUp') {
-        // console.log('arrow up pressed');
-      } else {
-        console.log('key ', key, value);
-        setInputVal(value);
-        setShowMenu(true);
-      }
-    }, []);
+  const onInputValueChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target;
+      console.log('onChange value ', value, value.length);
+      dispatch({
+        type: ComboboxReducerActionType.SetInputVal,
+        payload: value,
+      });
+      setShowMenu(true);
+    },
+    []
+  );
 
-  console.log('Autocomplete rendering, inputVal ', inputVal, showMenu);
   return (
-    // <ComboboxContext.Provider
-    //   value={{
-    //     isCompact: isCompact ?? false,
-    //     activeValue: selectedValue,
-    //     selectedValue,
-    //     onSelect: selectOption,
-    //   }}
-    // >
-    <div className='dropdown' ref={dropdownRef}>
-      <label htmlFor={elementIds.inputId}>Autocomplete Dropdown</label>
-      <div className='dd-input-container' onClick={focusInput}>
-        <>
-          {!isFocused && (
-            <div className='dd-value'>
-              {selectedOption
-                ? Array.isArray(selectedOption)
-                  ? selectedOption.join(', ')
-                  : selectedOption.toString()
-                : ''}
-            </div>
-          )}
-          <input
-            id={elementIds.inputId}
-            className={isFocused ? 'expand' : ''}
-            onFocus={onInputFocus}
-            onBlur={onInputBlur}
-            onKeyUp={keyUpHandler}
-            onKeyDown={keyDownHandler}
-            ref={inputRef}
-            autoComplete='off'
-          />
-        </>
+    <ComboboxContext.Provider
+      value={{
+        isCompact: isCompact ?? false,
+        activeValue: selectedValue,
+        selectedValue,
+        onSelect: selectOption,
+        itemIndexRef: { current: 0 },
+        highlightedIndex: state.highlightedIndex,
+      }}
+    >
+      <div className='dropdown' ref={dropdownRef}>
+        <label htmlFor={elementIds.inputId}>Autocomplete Dropdown</label>
+        <div className='dd-input-container' onClick={focusInput}>
+          <>
+            {!isFocused && (
+              <div className='dd-value'>
+                {selectedOption
+                  ? Array.isArray(selectedOption)
+                    ? selectedOption.join(', ')
+                    : selectedOption.toString()
+                  : ''}
+              </div>
+            )}
+            <input
+              id={elementIds.inputId}
+              className={isFocused ? 'expand' : ''}
+              onFocus={onInputFocus}
+              onBlur={onInputBlur}
+              onKeyDown={keyDownHandler}
+              onChange={onInputValueChange}
+              ref={inputRef}
+              autoComplete='off'
+            />
+          </>
+        </div>
+        {showMenu && React.Children.toArray(children).length > 0 && (
+          <Menu isOpen={state.inputVal.length > 0} ref={menuRef}>
+            {children}
+          </Menu>
+        )}
       </div>
-      {showMenu && React.Children.toArray(children).length > 0 && (
-        <Menu inputVal={inputVal} ref={menuRef}>
-          {children}
-        </Menu>
-      )}
-    </div>
-    // </ComboboxContext.Provider>
+    </ComboboxContext.Provider>
   );
 };
+
+Autocomplete.displayName = 'Autocomplete';
 
 export default Autocomplete;

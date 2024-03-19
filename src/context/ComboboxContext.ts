@@ -7,6 +7,8 @@ const ComboboxContext = React.createContext<
       activeValue: OptionValue | null;
       selectedValue: OptionValue | OptionValue[] | null;
       onSelect?: onChangeType;
+      itemIndexRef: React.MutableRefObject<number>;
+      highlightedIndex: number;
     }
   | undefined
 >(undefined);

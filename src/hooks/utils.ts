@@ -1,8 +1,12 @@
-import { useId, useRef } from "react";
+import React from 'react';
+import {
+  ComboboxReducerAction,
+  ComboboxStateType,
+} from '../reducers/ComboboxReducer';
 
 const useElementIds = () => {
-  const id = `ac-${useId()}`;
-  const elementIdsRef = useRef({
+  const id = `ac-${React.useId()}`;
+  const elementIdsRef = React.useRef({
     labelId: `${id}-label`,
     inputId: `${id}-input`,
     menuId: `${id}-menu`,
@@ -11,4 +15,11 @@ const useElementIds = () => {
   return elementIdsRef.current;
 };
 
-export { useElementIds };
+const useCombobox = (
+  prevState: ComboboxStateType,
+  dispatch: React.Dispatch<ComboboxReducerAction>
+) => {
+  console.log('prevState:', prevState, dispatch);
+};
+
+export { useElementIds, useCombobox };
