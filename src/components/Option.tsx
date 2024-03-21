@@ -25,11 +25,7 @@ const Option: React.ForwardRefExoticComponent<OptionProps> = React.forwardRef<
       block: 'nearest',
     });
   }
-  // console.log(highlightedIndex, itemIndexRef.current);
   if (!isDisabled) itemIndexRef.current++;
-  // const isSelected = Array.isArray(selectedValue)
-  //   ? selectedValue.includes(value)
-  //   : selectedValue === value;
   return (
     <StyledOption
       ref={mergeRefs(ref, currentOptionRef)}
