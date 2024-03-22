@@ -10,15 +10,14 @@ import './styles.css';
 import { OptionValue, onChangeType } from './types';
 
 export default function App() {
-  const [options, setOptions] = useState<string[]>([]);
+  const [options, setOptions] = useState<string[]>(mockOptions);
   const [filtering, isFiltering] = useState<boolean>(false);
 
   const debouncedFunc = useRef<debounceType>(
     debounce((searchVal: string) => {
-      console.log('searchVal ', searchVal);
       if (!searchVal) {
         debouncedFunc.current.cancel();
-        setOptions([]);
+        setOptions(mockOptions);
       } else {
         const filteredOptions = mockOptions.filter(
           (option) => option.toLowerCase().indexOf(searchVal.toLowerCase()) > -1
@@ -49,9 +48,18 @@ export default function App() {
     }
   }, [filtering, options]);
 
+  const onValueChange = (selectedValue: OptionValue | OptionValue[] | null) => {
+    console.info('selectedValue ', selectedValue);
+  };
+
   return (
     <div className='App'>
-      <Autocomplete onChange={filterOptions}>
+      <Autocomplete
+        onInputValChange={filterOptions}
+        isMultiselectable
+        onChange={onValueChange}
+        initialSelectedValue={[mockOptions[0], mockOptions[2], mockOptions[5]]}
+      >
         {renderMenuOptions()}
       </Autocomplete>
     </div>

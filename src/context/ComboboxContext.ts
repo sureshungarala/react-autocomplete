@@ -4,7 +4,6 @@ import { OptionValue, onChangeType } from '../types';
 const ComboboxContext = React.createContext<
   | {
       isCompact: boolean;
-      activeValue: OptionValue | null;
       selectedValue: OptionValue | OptionValue[] | null;
       onSelect?: onChangeType;
       itemIndexRef: React.MutableRefObject<number>;

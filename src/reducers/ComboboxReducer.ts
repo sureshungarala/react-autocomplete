@@ -21,7 +21,6 @@ const ComboboxReducer: React.Reducer<
 > = (state: ComboboxStateType, action: ComboboxReducerAction) => {
   switch (action.type) {
     case ComboboxReducerActionType.SetHighlightedIndex:
-      console.log('action.payload ', action.payload);
       return {
         ...state,
         highlightedIndex: action.payload as number,

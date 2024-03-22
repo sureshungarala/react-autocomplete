@@ -2,10 +2,12 @@
   --text-color: #4a4a4a;
   --border-color: #4a4a4a;
   --border-color-active: hotpink;
+  --primary-color: #535bf2;
   --dropdown-width: 250px;
   --dropdown-height: 40px;
   --dropdown-font-size: 18px;
   --dropdown-menu-height: 250px;
+  --box-shadow: #fff 0px 0px 0px 1px, var(--primary-color) 0px 0px 0px 3px;
 }
 
 .App {
@@ -28,12 +30,12 @@
 
 .dropdown > label:hover + .dd-input-container,
 .dd-input-container:hover {
-  border: 1px solid var(--border-color-active);
+  border: 1px solid var(--primary-color);
 }
 
 .dd-input-container {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   height: var(--dropdown-height);
   width: var(--dropdown-width);
@@ -48,10 +50,12 @@
   transition: box-shadow 0.25s;
 }
 .dd-input-container input {
-  width: 0;
+  width: 1px;
   height: 1px;
   border: none;
   outline: none;
+  padding: 0;
+  clip: rect(0px, 0px, 0px, 0px);
   font-size: var(--dropdown-font-size);
 }
 
@@ -61,25 +65,27 @@
 }
 
 .dd-input-container .dd-value {
-  display: flex;
-  justify-content: start;
-  align-items: center;
   border: none;
   outline: none;
   width: 100%;
   height: 100%;
+  text-align: left;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: calc(var(--dropdown-height) - 2 * 0.25rem);
 }
 
 .dd-input-container:has(input:focus, input:active) {
-  box-shadow: #fff 0px 0px 0px 1px, var(--border-color-active) 0px 0px 0px 3px;
-  border-color: var(--border-color-active);
+  box-shadow: var(--box-shadow);
+  border-color: var(--primary-color);
 }
 
 .dropdown ul {
   /* display: none; */
   list-style: none;
-  border: 1px solid var(--border-color-active);
+  border: 1px solid var(--primary-color);
   width: var(--dropdown-width);
   border-radius: 4px;
   padding: 0;
@@ -101,10 +107,6 @@
   padding: 0.5rem;
   text-align: start;
   cursor: pointer;
-}
-
-.dropdown ul > li:not(:last-child) {
-  border-bottom: 0.5px solid var(--border-color-active);
 }
 
 .disabled {

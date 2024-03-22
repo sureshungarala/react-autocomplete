@@ -4,7 +4,7 @@ import { ForwardedRef, ReactNode } from 'react';
 type OptionValue = string | object;
 
 type onChangeType = {
-  (inputVal: OptionValue): void;
+  (inputVal: OptionValue, valueIndex?: number): void;
   cancel?: () => void;
 };
 
@@ -13,8 +13,10 @@ type AutocompleteProps = {
   isCompact?: boolean;
   isMultiselectable?: boolean;
   isDisabled?: boolean;
-  onChange?: onChangeType;
-  selectedValue?: OptionValue | OptionValue[] | null;
+  onChange: (selectedValue: OptionValue | OptionValue[] | null) => unknown;
+  onInputValChange?: onChangeType;
+  // onInputValChange?: onChangeType;
+  initialSelectedValue?: OptionValue | OptionValue[] | null;
 };
 
 type MenuProps = {
@@ -34,6 +36,7 @@ type OptionProps = {
 type StyledOptionProps = {
   $isCompact?: boolean;
   $isActive?: boolean;
+  $isSelected?: boolean;
   disabled?: boolean;
 };
 

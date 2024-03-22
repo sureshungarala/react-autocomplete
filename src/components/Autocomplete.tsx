@@ -17,31 +17,31 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
   isMultiselectable = false,
   // isDisabled = false,
   onChange,
-  selectedValue = null,
+  onInputValChange,
+  initialSelectedValue = null,
 }): React.ReactElement => {
   const elementIds = useElementIds();
   const [state, dispatch] = React.useReducer(ComboboxReducer, {
     highlightedIndex: -1,
     inputVal: '',
   });
-  console.log('new state ', state);
   const [showMenu, setShowMenu] = React.useState<boolean>(false);
   const [isFocused, setIsFocused] = React.useState<boolean>(false);
   const [selectedOption, setSelectedOption] = React.useState<
     OptionValue | OptionValue[] | null
-  >(null);
+  >(initialSelectedValue);
 
+  const inputValChangedRef = React.useRef<boolean>(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const menuRef = React.useRef<HTMLUListElement>(null);
 
   React.useEffect(() => {
-    onChange?.(state.inputVal);
+    if (inputValChangedRef.current) onInputValChange?.(state.inputVal);
     return () => {
-      onChange?.cancel?.();
+      onInputValChange?.cancel?.();
     };
-  }, [onChange, state.inputVal]);
-  // console.log('children ', children, showMenu);
+  }, [onInputValChange, state.inputVal]);
 
   React.useEffect(() => {
     const documentClickHandler = (event: MouseEvent) => {
@@ -52,9 +52,7 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
         setShowMenu(false);
       }
     };
-
     document.addEventListener('click', documentClickHandler);
-
     return () => {
       document.removeEventListener('click', documentClickHandler);
     };
@@ -65,10 +63,10 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
   }, []);
 
   const selectOption = React.useCallback(
-    (optionVal: OptionValue) => {
+    (optionVal: OptionValue, optionValIndex?: number) => {
       if (isMultiselectable) {
         setSelectedOption((oldOptions: OptionValue[]) => {
-          const options = [...oldOptions];
+          const options = [...(oldOptions ?? [])];
           const optionIndex = options.indexOf(optionVal);
           if (optionIndex > -1) {
             options.splice(optionIndex, 1);
@@ -77,12 +75,22 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
           }
           return options;
         });
+        setTimeout(() => {
+          onChange(selectedOption);
+        }, 20);
       } else {
         setSelectedOption(optionVal);
+        onChange(optionVal);
         setShowMenu(false);
       }
+      if (optionValIndex !== undefined) {
+        dispatch({
+          type: ComboboxReducerActionType.SetHighlightedIndex,
+          payload: optionValIndex,
+        });
+      }
     },
-    [isMultiselectable]
+    [selectedOption, isMultiselectable, onChange]
   );
 
   const onInputFocus = React.useCallback(() => {
@@ -97,23 +105,12 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
   const keyDownHandler: React.KeyboardEventHandler<HTMLInputElement> =
     React.useCallback(
       (event: React.KeyboardEvent<HTMLInputElement>) => {
-        const { key, target } = event;
-        const value = (target as HTMLInputElement).value;
-        console.log('key ', key, value, typeof value, value.length);
+        const { key } = event;
         if (key === 'Escape') {
           setShowMenu(false);
-        }
-        // else if (key === 'Space' || key === ' ') {
-        //   // console.log('space key pressed');
-        //   dispatch({
-        //     type: ComboboxReducerActionType.SetInputVal,
-        //     payload: value,
-        //   });
-        // }
-        else if (key === 'ArrowDown') {
+        } else if (key === 'ArrowDown') {
           const menuItems =
             menuRef.current?.querySelectorAll('li')?.length ?? 0;
-          console.log('arrow down pressed ', state.highlightedIndex);
           dispatch({
             type: ComboboxReducerActionType.SetHighlightedIndex,
             payload:
@@ -124,7 +121,6 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
         } else if (key === 'ArrowUp') {
           const menuItems =
             menuRef.current?.querySelectorAll('li')?.length ?? 0;
-          // console.log('arrow up pressed');
           dispatch({
             type: ComboboxReducerActionType.SetHighlightedIndex,
             payload:
@@ -132,15 +128,28 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
                 ? menuItems - 1
                 : state.highlightedIndex - 1,
           });
+        } else if (key === 'Enter') {
+          const menuItems =
+            menuRef.current?.querySelectorAll('li')?.length ?? 0;
+          if (menuItems > 0) {
+            const highlightedOption =
+              menuRef.current?.querySelectorAll('li')?.[state.highlightedIndex];
+            if (highlightedOption) {
+              const value = highlightedOption.getAttribute('data-value');
+              if (value) {
+                selectOption(value);
+              }
+            }
+          }
         }
       },
-      [state.highlightedIndex]
+      [state.highlightedIndex, selectOption]
     );
 
   const onInputValueChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!inputValChangedRef.current) inputValChangedRef.current = true;
       const { value } = event.target;
-      console.log('onChange value ', value, value.length);
       dispatch({
         type: ComboboxReducerActionType.SetInputVal,
         payload: value,
@@ -154,8 +163,7 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
     <ComboboxContext.Provider
       value={{
         isCompact: isCompact ?? false,
-        activeValue: selectedValue,
-        selectedValue,
+        selectedValue: selectedOption,
         onSelect: selectOption,
         itemIndexRef: { current: 0 },
         highlightedIndex: state.highlightedIndex,
@@ -187,7 +195,7 @@ const Autocomplete: React.FunctionComponent<AutocompleteProps> = ({
           </>
         </div>
         {showMenu && React.Children.toArray(children).length > 0 && (
-          <Menu isOpen={state.inputVal.length > 0} ref={menuRef}>
+          <Menu isOpen={true /* state.inputVal.length > 0 */} ref={menuRef}>
             {children}
           </Menu>
         )}

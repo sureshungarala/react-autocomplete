@@ -1,8 +1,4 @@
 import React from 'react';
-import {
-  ComboboxReducerAction,
-  ComboboxStateType,
-} from '../reducers/ComboboxReducer';
 
 const useElementIds = () => {
   const id = `ac-${React.useId()}`;
@@ -15,11 +11,4 @@ const useElementIds = () => {
   return elementIdsRef.current;
 };
 
-const useCombobox = (
-  prevState: ComboboxStateType,
-  dispatch: React.Dispatch<ComboboxReducerAction>
-) => {
-  console.log('prevState:', prevState, dispatch);
-};
-
-export { useElementIds, useCombobox };
+export { useElementIds };
